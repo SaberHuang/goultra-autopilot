@@ -89,24 +89,28 @@ claude -p（headless，工作目錄 03_FCPX，專用權限 profile）
 - 不用 `--dangerously-skip-permissions`。白名單以一次真實 dry-run 的實際需求為準校調
   （寧可第一次多擋幾下，從 log 補白名單）。
 
-### 2.6 進度通知（雙通道）
+### 2.6 進度通知（內建推播為主，ntfy 降級為純文字備援）
 
 查證結果（官方文件，2026-04 起）：Claude Code **有內建手機推播**——Remote Control
 ＋ Claude mobile app，PushNotification 工具在 headless 模式可用。限制：**純文字、
 ≤200 字元、無圖片**；需 claude.ai 登入（OAuth）＋ Pro/Max 訂閱＋手機裝 Claude app。
 
-設計：**內建推播負責「叫你」，ntfy 負責「給你看」**——
+設計（2026-07-14 因資安考量改版，Saber 拍板）：
 
-| 通道 | 用途 | 設定成本 |
+| 通道 | 用途 | 限制/前提 |
 |---|---|---|
-| 內建 PushNotification | 里程碑一句話通知、需決策的高優先級呼叫 | 零（已有 Claude app 即可，`/config` 開啟） |
-| ntfy.sh（私有 topic） | 交付截圖×3、ffprobe 規格、失敗時的詳細現場 | 手機裝 ntfy app 訂閱一個 topic，5 分鐘 |
+| 內建 PushNotification | 里程碑通知、需決策的高優先級呼叫（headless session 內） | 需 Remote Control 啟用（`/config` 開推播＋手機 Claude app 同帳號登入） |
+| Remote Control（手機 Claude app） | **看截圖**：驗收截圖出現在 session 對話內，手機直接看；「該問使用者」時從手機回覆 | 截圖在手機上的可視性待 Phase 2 實測 |
+| ntfy.sh（私有 topic） | 僅 shell 層（trigger/ingest，進 Claude 前）純文字通知 | **政策：只發無個資短文字（「匯入 N 支素材」等級）；禁止傳截圖/附件/逐字稿內容** |
 
-- 額外紅利：Remote Control 讓你能**從手機回覆** headless session——遇到「該問使用者」
-  的情境，你在手機上直接回答，流程不中斷。
-- 若想極簡：可以只用內建推播，代價是手機上看不到截圖，遠端目視驗收（成功標準 #5）做不到。
-  計畫按雙通道走。
-- shell 層（trigger/ingest 階段，還沒進 Claude）統一走 ntfy（一行 curl）。
+- ntfy 資安評估（降級原因）：公共 ntfy.sh 的 topic 名稱是唯一秘密——知道的人既可訂閱
+  讀取、也可發假通知；訊息在伺服器明文快取約 12 小時（TLS 傳輸、非端到端加密）。
+  純文字里程碑洩漏可接受，**個人影像截圖不可走公共第三方**——截圖改走 Remote Control
+  （不出 Anthropic 帳號體系）。
+- 2026-07-14 實測：PushNotification 在 Remote Control 未啟用時回報 not sent（不會丟失
+  主流程，只是通知沒出去）。**Saber 端前置作業：Claude Code 跑 `/config` 開啟
+  「Push when Claude decides」、手機 Claude app 同帳號登入。Phase 2 開跑前先實測
+  一則推播真的到手機。**
 
 ## 3. 風險與實測清單（按驗證順序）
 
@@ -184,3 +188,6 @@ goultra-autopilot/
 
 - 2026-07-13：初版計畫（方向討論後、開工前）。
 - 2026-07-14：Saber 確認開放問題；BGM fallback 改為 03_FCPX/Music；記錄 repo 與 ntfy topic；開工 Phase 1。
+- 2026-07-14：Phase 1 建置完成、verifier 九條全過。通知架構改版：內建推播＋Remote Control 為主、
+  ntfy 降級為 shell 層純文字備援（禁附件），原因為公共 ntfy 的 topic 即秘密＋伺服器明文快取。
+  Saber 授權後續各 Phase 驗收過即直接合併 main。
