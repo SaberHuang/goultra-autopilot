@@ -52,8 +52,9 @@
 
 依序：開工 → 留言解析結果 → 素材盤點完成（N 支可用/M 支排除）→ 粗剪完成（成片長度）→
 BGM 完成（生成/庫存）→ 字幕與 overlay 完成 → export＋驗收結果（成片路徑＋規格＋
-verifier 結論）。若 PushNotification 回報 not sent（Remote Control 未連上），改用
-`curl -d "<訊息>" https://ntfy.sh/saber-goultra-8509a1d2`（僅純文字，禁附件）。
+verifier 結論）。**PushNotification 回傳任何「not sent」（不論原因，含 terminal active
+抑制——你是 headless，使用者看不到你的輸出，該抑制對你不成立）→ 一律改用
+`curl -d "<訊息>" https://ntfy.sh/saber-goultra-8509a1d2` 補發**（僅純文字，禁附件）。
 
 ## 交付驗收（不可自驗）
 

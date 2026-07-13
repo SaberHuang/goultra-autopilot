@@ -118,9 +118,9 @@ claude -p（headless，工作目錄 03_FCPX，專用權限 profile）
 
 | # | 風險 | 驗證方法 | fallback |
 |---|---|---|---|
-| 1 | **Suno 瀏覽器自動化在螢幕鎖定下能不能跑**（全鏈最脆弱） | 鎖屏狀態手動跑一次 suno-cli | 用 /Users/saber/03_FCPX/Music/ 庫存曲，推播註明 |
+| 1 | **Suno 無人值守生成本質不可靠**（2026-07-14 實測定調）：鎖屏渲染正常（截圖證據）；sticky 分頁 bug 已修（suno-cli fix/sticky-tab-mode）；但 Create 送出會**隨機觸發 hCaptcha 人機驗證**，驗證不自動繞過 | 已實測（鎖屏生成跑到 CAPTCHA 被擋，無新歌無扣額度）；suno-cli 已加 CAPTCHA 明確報錯 | fallback 庫存曲是**常態路徑**而非例外：/Users/saber/03_FCPX/Music/，推播註明；長期解法＝人在電腦旁時定期批次生成補充曲庫 |
 | 2 | PalmierPro 沒開時 MCP 能否使用 | 關 app 跑一次 headless 測試 | script 先 `open -a PalmierPro` 再等就緒 |
-| 3 | **內建推播在 headless 下能不能用**：Remote Control 是 per-session 連線（VSCode 要跑 `/remote-control`），`claude -p` 是否支援官方文件無記載（UNVERIFIED，2026-07-14 查證）；「one remote session per interactive process」暗示非互動模式可能不支援 | Phase 2 先測 `claude -p` 內 PushNotification，再測 `claude --remote-control` 帶初始 prompt 的啟動方式 | 剪輯 session 改用 `--remote-control` 互動式啟動；再不行則通知全走 ntfy 純文字、截圖驗收退回開電腦看 |
+| 3 | **內建推播在 headless 下能不能用**（2026-07-14 實測）：設定 `remoteControlAtStartup: true` 後，`claude -p` 內 PushNotification 的 RC bridge **會連上**（回應從 "Remote Control inactive" 變為 "terminal is active" 抑制）——機制層面通。剩餘缺口：「人真的離開、無任何互動 session」時的手機送達未驗證（本次測試被主對話 session 的活躍狀態抑制） | Phase 3 端到端（真插卡、電腦無人用）時驗證送達 | prompt-template 已規定：PushNotification 回任何 not sent → 一律 ntfy 補發純文字，通知不會靜默消失 |
 | 4 | Go Ultra 掛載簽名（磁碟名/結構） | 第一次插卡時記錄 | — |
 | 5 | Mac 睡眠/鎖屏下 USB 掛載與 launchd 行為 | 鎖屏插卡實測 | 設定接電不睡眠 |
 | 6 | headless session 中途 crash → 無聲死掉 | 故意 kill 測試 | trigger.sh 監控 claude 退出碼，非零就推失敗通知（外層兜底） |
@@ -193,3 +193,7 @@ goultra-autopilot/
 - 2026-07-14：Phase 1 建置完成、verifier 九條全過。通知架構改版：內建推播＋Remote Control 為主、
   ntfy 降級為 shell 層純文字備援（禁附件），原因為公共 ntfy 的 topic 即秘密＋伺服器明文快取。
   Saber 授權後續各 Phase 驗收過即直接合併 main。
+- 2026-07-14（Phase 2 風險實測）：LaunchAgent 已由 Saber 安裝；`remoteControlAtStartup` 等三開關
+  已設進 ~/.claude/settings.json；風險 #1、#3 實測結果更新至風險表（Suno 遇 CAPTCHA→庫存曲為
+  常態路徑；headless RC bridge 通、送達留 Phase 3 驗證）；prompt-template.md 與
+  headless-settings.json 初版完成。風險 #2（PalmierPro）留待迷你端到端測試。
