@@ -99,23 +99,22 @@ _find_goultra_volume() {
             return 0
         fi
 
-        # 條件二：存在 DCIM/ 目錄，且磁碟名稱含 Insta360 特徵字樣（不分大小寫）。
-        if [[ -d "$vol/DCIM" ]]; then
-            local vol_name_lower
-            vol_name_lower="$(echo "$vol_name" | tr '[:upper:]' '[:lower:]')"
-            if [[ "$vol_name_lower" == *insta360* || "$vol_name_lower" == *goultra* || "$vol_name_lower" == *"go ultra"* ]]; then
-                echo "$vol"
-                return 0
-            fi
+        # 條件二：Insta360 內容指紋（2026-07-14 真卡校準：Go Ultra 掛載名是「Untitled」，
+        # 名稱不可靠；改認 DCIM/Camera01/fileinfo_list.list 這個 Insta360 特有檔案）。
+        if [[ -d "$vol/DCIM" ]] && [[ -f "$vol/DCIM/fileinfo_list.list" || -f "$vol/DCIM/Camera01/fileinfo_list.list" ]]; then
+            echo "$vol"
+            return 0
         fi
     done
     return 1
 }
 
-GOULTRA_VOLUME="$(_find_goultra_volume)"
-FIND_STATUS=$?
+# 注意：不能寫成 VAR="$(func)" 直接賦值——set -e＋ERR trap 下，函式回傳非零會在
+# 賦值行直接觸發 trap（2026-07-14 真卡首插實測踩坑，line 115 誤報 unexpected error），
+# 用 || true 吃掉狀態碼，靠空值判斷。
+GOULTRA_VOLUME="$(_find_goultra_volume || true)"
 
-if [[ "$FIND_STATUS" -ne 0 || -z "$GOULTRA_VOLUME" ]]; then
+if [[ -z "$GOULTRA_VOLUME" ]]; then
     echo "未偵測到 Go Ultra 磁碟，靜默退出。"
     exit 0
 fi
