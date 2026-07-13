@@ -1,0 +1,43 @@
+{
+  "_comment": "goultra-autopilot headless 剪輯 session 專用權限 profile（claude -p --settings 本檔）。初版待 Phase 2 迷你 dry-run 校準：被擋的合法操作從 log 補進 allow，不用 bypassPermissions 裸奔。",
+  "permissions": {
+    "defaultMode": "dontAsk",
+    "allow": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Agent",
+      "Skill",
+      "PushNotification",
+      "TodoWrite",
+      "Write(/Users/saber/03_FCPX/**)",
+      "Edit(/Users/saber/03_FCPX/**)",
+      "Bash(ffprobe *)",
+      "Bash(ffmpeg *)",
+      "Bash(whisper *)",
+      "Bash(ls *)",
+      "Bash(mkdir *)",
+      "Bash(pgrep *)",
+      "Bash(open -a PalmierPro*)",
+      "Bash(node /Users/saber/03_GitHub/suno-cli/bin/suno.js *)",
+      "Bash(curl -d * https://ntfy.sh/saber-goultra-8509a1d2)",
+      "Bash(cp /Users/saber/03_FCPX/*)",
+      "Bash(mv /Users/saber/03_FCPX/*)"
+    ],
+    "deny": [
+      "Bash(rm *)",
+      "Bash(sudo *)",
+      "Write(/Users/saber/03_FCPX/Insta360_RAW/**/*.mp4)",
+      "Write(/Users/saber/03_FCPX/Insta360_RAW/**/*.MP4)",
+      "Edit(/Users/saber/03_FCPX/Insta360_RAW/**/*.mp4)",
+      "Edit(/Users/saber/03_FCPX/Insta360_RAW/**/*.MP4)"
+    ],
+    "additionalDirectories": [
+      "/Users/saber/03_FCPX"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "remoteControlAtStartup": true,
+  "agentPushNotifEnabled": true,
+  "inputNeededNotifEnabled": true
+}
