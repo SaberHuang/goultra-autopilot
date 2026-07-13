@@ -68,8 +68,10 @@ claude -p（headless，工作目錄 03_FCPX，專用權限 profile）
 
 ### 2.4 Headless 剪輯 session
 
-- 指令形態：`claude -p "$(cat prompt-template.md)" --settings <專用profile> ...`，
+- 指令形態：`claude -p "$(cat prompt-template.md)" --model opus --settings <專用profile> ...`，
   工作目錄 `03_FCPX`（讓專案記憶自動載入）。
+- **Model：預設用最新版 Opus**（`--model opus` 別名自動指向最新版；Saber 2026-07-14 拍板）。
+  Session 內派 subagent 的選型照 model-dispatch.md 規則不變。
 - prompt 模板要點（完整內容在 repo 的 `prompt-template.md`）：
   - 開工先全文讀 `~/.claude/commands/edit-video.md` 當 checklist（制度既有規則）。
   - 建 `<案名>_cutlist.md` 工作檔，所有決策落檔（防長 session 被 summarization 後失憶）。
@@ -118,7 +120,7 @@ claude -p（headless，工作目錄 03_FCPX，專用權限 profile）
 |---|---|---|---|
 | 1 | **Suno 瀏覽器自動化在螢幕鎖定下能不能跑**（全鏈最脆弱） | 鎖屏狀態手動跑一次 suno-cli | 用 /Users/saber/03_FCPX/Music/ 庫存曲，推播註明 |
 | 2 | PalmierPro 沒開時 MCP 能否使用 | 關 app 跑一次 headless 測試 | script 先 `open -a PalmierPro` 再等就緒 |
-| 3 | PushNotification 在本機 headless 實測（文件說可以，未實測） | `claude -p` 跑一句 PushNotification | 全部改走 ntfy |
+| 3 | **內建推播在 headless 下能不能用**：Remote Control 是 per-session 連線（VSCode 要跑 `/remote-control`），`claude -p` 是否支援官方文件無記載（UNVERIFIED，2026-07-14 查證）；「one remote session per interactive process」暗示非互動模式可能不支援 | Phase 2 先測 `claude -p` 內 PushNotification，再測 `claude --remote-control` 帶初始 prompt 的啟動方式 | 剪輯 session 改用 `--remote-control` 互動式啟動；再不行則通知全走 ntfy 純文字、截圖驗收退回開電腦看 |
 | 4 | Go Ultra 掛載簽名（磁碟名/結構） | 第一次插卡時記錄 | — |
 | 5 | Mac 睡眠/鎖屏下 USB 掛載與 launchd 行為 | 鎖屏插卡實測 | 設定接電不睡眠 |
 | 6 | headless session 中途 crash → 無聲死掉 | 故意 kill 測試 | trigger.sh 監控 claude 退出碼，非零就推失敗通知（外層兜底） |
