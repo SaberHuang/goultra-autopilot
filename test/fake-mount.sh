@@ -77,6 +77,7 @@ RUN1_LOG_PATTERN="$TEST_LOG_DIR/run-*.log"
 
 env \
     GOULTRA_TEST_VOLUME="$FAKE_VOLUME" \
+    GOULTRA_SKIP_EDIT=1 \
     NTFY_DRYRUN=1 \
     RAW_DEST="$TEST_RAW_DEST" \
     MANIFEST="$TEST_RAW_DEST/.imported_manifest" \
@@ -146,6 +147,7 @@ echo "PASS (a): 第一輪匯入 3 檔，.lrv 排除，manifest/.batch_files 正�
 
 env \
     GOULTRA_TEST_VOLUME="$FAKE_VOLUME" \
+    GOULTRA_SKIP_EDIT=1 \
     NTFY_DRYRUN=1 \
     RAW_DEST="$TEST_RAW_DEST" \
     MANIFEST="$TEST_RAW_DEST/.imported_manifest" \

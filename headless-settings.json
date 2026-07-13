@@ -1,5 +1,5 @@
 {
-  "_comment": "goultra-autopilot headless 剪輯 session 專用權限 profile（claude -p --settings 本檔）。初版待 Phase 2 迷你 dry-run 校準：被擋的合法操作從 log 補進 allow，不用 bypassPermissions 裸奔。",
+  "_comment": "goultra-autopilot headless 剪輯 session 專用權限 profile（claude -p --settings 本檔）。2026-07-14 dry-run 校準：路徑規則須用 // 開頭；Bash 整體放行、靠 deny 擋危險操作；sandbox 保持開啟＋ntfy 網域與 03_FCPX 寫入放行——代價是 suno-cli（Playwright 驅動 Chrome）在 sandbox 下預期會失敗，BGM 走庫存曲 fallback。若 Saber 明確授權 sandbox 關閉（讓 suno 可用），把 sandbox.enabled 改 false。前提：trigger.sh 會在啟動 claude 前先拉起 PalmierPro（MCP 是啟動時連線）。",
   "permissions": {
     "defaultMode": "dontAsk",
     "allow": [
@@ -10,31 +10,44 @@
       "Skill",
       "PushNotification",
       "TodoWrite",
-      "Write(/Users/saber/03_FCPX/**)",
-      "Edit(/Users/saber/03_FCPX/**)",
-      "Bash(ffprobe *)",
-      "Bash(ffmpeg *)",
-      "Bash(whisper *)",
-      "Bash(ls *)",
-      "Bash(mkdir *)",
-      "Bash(pgrep *)",
-      "Bash(open -a PalmierPro*)",
-      "Bash(node /Users/saber/03_GitHub/suno-cli/bin/suno.js *)",
-      "Bash(curl -d * https://ntfy.sh/saber-goultra-8509a1d2)",
-      "Bash(cp /Users/saber/03_FCPX/*)",
-      "Bash(mv /Users/saber/03_FCPX/*)"
+      "Monitor",
+      "TaskOutput",
+      "TaskStop",
+      "ToolSearch",
+      "Bash",
+      "Write(//Users/saber/03_FCPX/**)",
+      "Edit(//Users/saber/03_FCPX/**)",
+      "Write(//private/tmp/**)",
+      "Edit(//private/tmp/**)",
+      "mcp__palmier-pro"
     ],
     "deny": [
       "Bash(rm *)",
       "Bash(sudo *)",
-      "Write(/Users/saber/03_FCPX/Insta360_RAW/**/*.mp4)",
-      "Write(/Users/saber/03_FCPX/Insta360_RAW/**/*.MP4)",
-      "Edit(/Users/saber/03_FCPX/Insta360_RAW/**/*.mp4)",
-      "Edit(/Users/saber/03_FCPX/Insta360_RAW/**/*.MP4)"
+      "Bash(diskutil *)",
+      "Bash(launchctl *)",
+      "Bash(git push*)",
+      "Write(//Users/saber/03_FCPX/Insta360_RAW/**/VID_*.mp4)",
+      "Write(//Users/saber/03_FCPX/Insta360_RAW/**/IMG_*)",
+      "Edit(//Users/saber/03_FCPX/Insta360_RAW/**/VID_*.mp4)",
+      "Edit(//Users/saber/03_FCPX/Insta360_RAW/**/IMG_*)"
     ],
     "additionalDirectories": [
-      "/Users/saber/03_FCPX"
+      "/Users/saber/03_FCPX",
+      "/Users/saber/03_GitHub/suno-cli"
     ]
+  },
+  "sandbox": {
+    "enabled": true,
+    "network": {
+      "allowedDomains": ["ntfy.sh"]
+    },
+    "filesystem": {
+      "allowWrite": [
+        "/Users/saber/03_FCPX",
+        "/private/tmp"
+      ]
+    }
   },
   "enableAllProjectMcpServers": true,
   "remoteControlAtStartup": true,

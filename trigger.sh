@@ -123,6 +123,59 @@ echo "偵測到 Go Ultra 磁碟：$GOULTRA_VOLUME"
 
 _acquire_lock
 
+# ---- Phase 2：headless 剪輯 session ----
+# 關鍵順序：MCP 是 claude 啟動時連線，PalmierPro 必須先在跑（2026-07-14 dry-run 踩坑：
+# session 啟動後才開 app，Palmier MCP 已連線失敗且不會重連）。
+run_edit_session() {
+    local batch_dir="$1"
+    local batch_count
+    batch_count="$(grep -c . "$batch_dir/.batch_files" 2>/dev/null || echo 0)"
+
+    # 測試 hook：fake-mount.sh 等測試情境設 GOULTRA_SKIP_EDIT=1，只驗匯入不啟動剪輯。
+    if [[ "${GOULTRA_SKIP_EDIT:-0}" == "1" ]]; then
+        _notify_log "GOULTRA_SKIP_EDIT=1：跳過 headless 剪輯（測試模式）。"
+        return 0
+    fi
+
+    # 1. 先拉起 PalmierPro，給它時間就緒。
+    if ! pgrep -xq PalmierPro; then
+        echo "PalmierPro 未執行，啟動中…"
+        open -a PalmierPro
+        sleep 15
+    fi
+
+    # 2. 用模板組出本批 prompt。
+    local prompt_file="$LOG_DIR/edit-prompt-${RUN_TS}.md"
+    sed -e "s|__BATCH_DIR__|${batch_dir}|g" \
+        -e "s|__BATCH_COUNT__|${batch_count}|g" \
+        "$SCRIPT_DIR/prompt-template.md" > "$prompt_file"
+
+    # 3. 啟動 headless 剪輯（工作目錄 03_FCPX，讓專案 MCP 與記憶載入）。
+    notify "default" "Go Ultra 自動剪輯" "素材已匯入（${batch_count} 支），headless 剪輯 session 啟動（opus）。進度看推播。"
+    local edit_log="$LOG_DIR/edit-session-${RUN_TS}.log"
+    local edit_status
+    trap - ERR
+    set +e
+    ( cd /Users/saber/03_FCPX && \
+      caffeinate -i "$CLAUDE_BIN" -p "$(cat "$prompt_file")" \
+        --model opus \
+        --settings "$SCRIPT_DIR/headless-settings.json" ) >"$edit_log" 2>&1
+    edit_status=$?
+    set -e
+    trap '_on_error $LINENO' ERR
+
+    # 4. 外層兜底：session 非零退出（crash/API 死亡）→ 高優先級通知。
+    #    正常完成的交付通知由 session 自己發，這裡只補一則收尾狀態。
+    if [[ $edit_status -eq 0 ]]; then
+        echo "headless 剪輯 session 正常結束。"
+        notify "default" "Go Ultra 自動剪輯" "剪輯 session 結束（exit 0）。若沒收到成片交付通知，請看 log：${edit_log}"
+    else
+        local tail_summary
+        tail_summary="$(tail -n 6 "$edit_log" 2>/dev/null | tr '\n' ' ' | cut -c1-300)"
+        notify "urgent" "Go Ultra 剪輯失敗" "headless session exit ${edit_status}。末段：${tail_summary}"
+    fi
+}
+
 # ---- caffeinate 防睡眠 + 呼叫 ingest.sh ----
 notify "default" "Go Ultra 已連接" "偵測到 Go Ultra（${GOULTRA_VOLUME}），開始匯入素材。"
 
@@ -142,9 +195,7 @@ trap '_on_error $LINENO' ERR
 case "$INGEST_STATUS" in
     0)
         echo "ingest.sh 回報：有新素材，全部匯入成功。"
-        # Phase 2 stub：headless 剪輯尚未啟用。
-        notify "default" "Go Ultra 自動剪輯" "素材已匯入，headless 剪輯 Phase 2 尚未啟用。"
-        _notify_log "run_edit_session stub: Phase 2 尚未實作，本次僅完成匯入。"
+        run_edit_session "$RAW_DEST/$(date '+%Y%m%d')"
         ;;
     10)
         echo "ingest.sh 回報：無新素材（僅充電或已匯入過）。"
