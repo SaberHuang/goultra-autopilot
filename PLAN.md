@@ -186,6 +186,16 @@ goultra-autopilot/
 - ntfy topic：`saber-goultra-8509a1d2`（私有，Saber 手機 ntfy app 需訂閱此 topic）
 - BGM 庫存曲目錄：/Users/saber/03_FCPX/Music/（已確認存在、有多首 mp3）
 
+## Phase 2 端到端結果（2026-07-14 真素材實跑）
+
+- 真卡首插 → 匯入 18 支 10.07GB（5.5 分鐘）→ headless opus session 剪出成片 4:23
+  （2688×1520/30fps/loudnorm −14LUFS）＋SRT 30 條＋封面 jpg，留言指示全數落實，verifier 過。
+- 首次啟動失敗的三個根因與修法（已 commit）：權限路徑規則要 `//` 開頭；PalmierPro 要在
+  claude 啟動前開好（MCP 啟動時連線）；sandbox 網域白名單放行 ntfy.sh。
+- headless 的 PushNotification 實測**一律 not sent**（RC bridge 在此情境不成立）——ntfy 是
+  headless 的實際通知通道，內建推播僅互動 session 可靠。
+- 懸而未決：Saber 是否授權 sandbox.enabled=false（讓 suno-cli 可用）；Phase 3 全程無人實跳。
+
 ## Changelog
 
 - 2026-07-13：初版計畫（方向討論後、開工前）。
