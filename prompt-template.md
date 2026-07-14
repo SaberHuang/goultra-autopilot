@@ -48,6 +48,16 @@
    依影片情緒選一首庫存曲，繼續主流程，並在推播與交付通知中註明「BGM 用庫存曲＋原因」。
    不要為 BGM 卡死整條 pipeline。
 
+## Garmin overlay（跑步/騎車片預設要做，2026-07-14 Saber 確認的預設）
+
+1. 照 `/garmin-gpx` skill（先全文讀）：source account.sh → 用現成 venv＋downloader
+   查素材拍攝當天的活動 → **GPX 與 TCX 都下載**到本批資料夾（同名成對，只抓 GPX 會讓 pace 亂飄）。
+2. 比對活動軌跡時間與素材拍攝時間（±10 分鐘寬容）；素材落在活動範圍外的段回 noOverlap
+   是正常，跳過即可。
+3. 對 timeline 每段 footage 呼叫 `add_garmin_overlay`，完成後 inspect_timeline 抽查。
+4. **失敗不擋交付**：登入卡 MFA、當天查無活動、GPX 無 trkpt → 跳過 overlay、
+   照常交付，推播註明原因。overlay 是 fallback-able 步驟，不是硬依賴。
+
 ## 里程碑推播（每則 ≤200 字，PushNotification）
 
 依序：開工 → 留言解析結果 → 素材盤點完成（N 支可用/M 支排除）→ 粗剪完成（成片長度）→
