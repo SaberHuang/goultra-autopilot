@@ -18,6 +18,14 @@
 3. PalmierPro 前置檢查：`pgrep -x PalmierPro`；沒在跑就 `open -a PalmierPro`，
    等 MCP 就緒（get_timeline 能回應）再繼續。失敗 → 走「失敗處理」。
 4. 推播第一則：「開始剪輯：N 支素材，先聽你的留言」。
+5. **🚨 Phase 0 語音草稿（skill §1 必做，是全片「誰在講什麼」的脈絡地基，缺它必崩）**：
+   跑 `tools/footage_srt.py <__BATCH_DIR__>` 產全素材語音草稿。⚠️ **做完必驗產出非空**：
+   `ls __BATCH_DIR__/語音草稿/*.srt` 要有檔、且每檔行數 > 0。
+   **只看 exit code 0 不算數**——2026-07-14 headless 首跑就是 footage_srt「exit 0 但零輸出」
+   （sandbox 弄壞 FunASR），session 沒驗產出就往下做，整片字幕/選段全瞎猜、來回崩多次。
+   驗到語音草稿為空 → 這是**致命錯**：換引擎重試（faster-whisper/enhance_asr）或推播回報停下，
+   **絕對不可在沒有語音草稿的情況下繼續剪**。同理其他「做完該有產出檔」的步驟都要驗檔存在非空。
+6. 素材盤點：產 `__BATCH_DIR__/素材盤點.md`（skill §1，逐支 inspect + 語音草稿脈絡）。
 
 ## 語音留言協議
 

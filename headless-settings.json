@@ -1,5 +1,5 @@
 {
-  "_comment": "goultra-autopilot headless 剪輯 session 專用權限 profile（claude -p --settings 本檔）。2026-07-14 dry-run 校準：路徑規則須用 // 開頭；Bash 整體放行、靠 deny 擋危險操作；sandbox 保持開啟＋ntfy 網域與 03_FCPX 寫入放行——代價是 suno-cli（Playwright 驅動 Chrome）在 sandbox 下預期會失敗，BGM 走庫存曲 fallback。若 Saber 明確授權 sandbox 關閉（讓 suno 可用），把 sandbox.enabled 改 false。前提：trigger.sh 會在啟動 claude 前先拉起 PalmierPro（MCP 是啟動時連線）。",
+  "_comment": "goultra-autopilot headless 剪輯 session 專用權限 profile（claude -p --settings 本檔）。2026-07-14 定案：sandbox 已由 Saber 授權關閉（enabled:false）——因為 sandbox 會靜默弄壞 FunASR（footage_srt Phase 0 語音草稿 exit 0 但零輸出→整片脈絡崩）、suno-cli、curl 三樣，是 headless 首跑失控的根因。關 sandbox 後靠 deny 清單（rm/sudo/diskutil/launchct/git push/原始素材寫入）當安全底線。路徑規則須用 // 開頭。前提：trigger.sh 會在啟動 claude 前先拉起 PalmierPro（MCP 是啟動時連線）。",
   "permissions": {
     "defaultMode": "dontAsk",
     "allow": [
@@ -38,16 +38,7 @@
     ]
   },
   "sandbox": {
-    "enabled": true,
-    "network": {
-      "allowedDomains": ["ntfy.sh"]
-    },
-    "filesystem": {
-      "allowWrite": [
-        "/Users/saber/03_FCPX",
-        "/private/tmp"
-      ]
-    }
+    "enabled": false
   },
   "enableAllProjectMcpServers": true,
   "remoteControlAtStartup": true,
